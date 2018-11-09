@@ -1,0 +1,65 @@
+.datetime-picker {
+    & .dropdown-menu>table {
+        width: 250px;
+        min-width: 250px;
+        height: 250px;
+        min-height: 250px;
+        user-select: none;
+    }
+    & tr>th,
+    & tr>td {
+        &>table td,
+        &>table th {
+            border-bottom: none;
+            &:hover {
+                background-color: rgba(0, 0, 0, 0.075);
+                cursor: pointer;
+            }
+        }
+        padding: 0;
+    }
+    & td,
+    th {
+        text-align: center;
+        vertical-align: middle;
+    }
+    & td {
+        color: #000000 !important;
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.075);
+            cursor: pointer;
+        }
+        &.text-off {
+            color: #bfbfbf !important;
+        }
+        &.today {
+            position: relative;
+            &::before {
+                content: '';
+                display: inline-block;
+                border: solid transparent;
+                border-width: 0 0 7px 7px;
+                border-bottom-color: #337ab7;
+                border-top-color: rgba(0, 0, 0, 0.2);
+                position: absolute;
+                bottom: 4px;
+                right: 4px;
+            }
+        }
+    }
+    & .year-view {
+        &>tbody>td {
+            padding: 0.5rem;
+        }
+    }
+    & .month-view {
+        &>tbody>td {
+            padding: 0.2rem;
+        }
+    }
+    .dropdown-menu {
+        padding-top: 0px;
+        margin-top: 0px;
+        padding-bottom: 0px;
+    }
+}

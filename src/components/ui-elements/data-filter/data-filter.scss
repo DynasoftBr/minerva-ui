@@ -1,0 +1,16 @@
+.filter-condition {
+    & .filter-logical-operator,
+    .filter-expression {
+        border: 1px solid #ddd;
+        padding: 20px 10px;
+    }
+    & .filter-logical-operator {
+        border-right: none;
+        background-color: #f4f4f4;
+        display: flex;
+        width: auto;
+        & span {
+            margin: auto;
+        }
+    }
+}

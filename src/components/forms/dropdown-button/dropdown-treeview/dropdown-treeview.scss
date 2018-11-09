@@ -1,0 +1,76 @@
+.dropdown-tree {
+    margin-bottom: 3px;
+    &,
+    ul {
+        padding-inline-start: 0px;
+    }
+    & .treeview-node {
+        list-style: none;
+        cursor: pointer;
+        user-select: none;
+        &>span {
+            padding-inline-start: 20px;
+            white-space: nowrap;
+            display: block;
+            padding: 0.25rem 0rem;
+            &:hover,
+            &:focus {
+                background-color: #f8f9fa;
+            }
+            &>i:first-of-type {
+                padding-right: 10px;
+            }
+            &>i:not(first-of-type+i) {
+                margin-inline-end: 5px;
+            }
+        }
+        &.has-children {
+            &>.treeview-node-children {
+                display: none;
+            }
+            &>span>i:first-of-type{
+                padding-right: 3px;
+            }
+            &>span>i:first-of-type::before {
+                content: "\f0da ";
+            }
+        }
+        &.has-children.open {
+            padding-bottom: 0px;
+            &>.treeview-node-children {
+                display: block;
+            }
+            &>span>i:first-of-type{
+                padding-right: 0px;
+            }
+            &>span>i:first-of-type::before {
+                content: "\f0d7 ";
+            }
+        }
+        & .node-check {
+            margin-right: 5px;
+        }
+    }
+    & .treeview-node {
+        &>span {
+            padding-right: 1rem;
+            padding-left: 1rem;
+        }
+        & .treeview-node>span {
+            padding-right: 2rem;
+            padding-left: 2rem;
+        }
+        & .treeview-node .treeview-node>span {
+            padding-right: 3rem;
+            padding-left: 3rem;
+        }
+        & .treeview-node .treeview-node .treeview-node>span {
+            padding-right: 4rem;
+            padding-left: 4rem;
+        }
+        & .treeview-node .treeview-node .treeview-node .treeview-node>span {
+            padding-right: 5rem;
+            padding-left: 5rem;
+        }
+    }
+}

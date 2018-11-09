@@ -1,0 +1,28 @@
+.slide-enter-active,
+.slide-leave-active {
+    transition-property: height;
+    transition-timing-function: ease-out;
+    transition-duration: 0.3s;
+    overflow: hidden;
+    padding-top: 0px;
+    margin-top: 0px;
+    padding-bottom: 0px;
+    margin-bottom: 0px;
+}
+
+.slide-enter,
+.slide-leave-to {
+    height: 0px;
+}
+
+.slide-enter-to,
+.slide-leave {
+    height: 40px;
+}
+
+.nav-item {
+    will-change: height;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
