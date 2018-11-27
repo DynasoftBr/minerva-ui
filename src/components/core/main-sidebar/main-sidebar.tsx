@@ -28,85 +28,85 @@ export default class MainSidebar extends Vue {
                 <div class="sidebar">
                     <SidebarUserPanel user-name={"Leandro Albano"}></SidebarUserPanel>
                     <SidebarMenu>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>
                             </template>
                         </SidebarMenuItem>
-                        <SidebarMenuItem has-child={true} icon-class="fa-dashboard">
+                        <SidebarMenuItem has-child={true} icon-class="fa-tachometer-alt">
                             Dashboard
                             <template slot="children-items">
                                 <SidebarMenuItem>teste</SidebarMenuItem>

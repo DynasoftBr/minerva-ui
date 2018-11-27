@@ -1,0 +1,79 @@
+.minerva-select {
+    position: relative;
+    & .form-control {
+        display: flex;
+        flex-direction: row;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        &[disabled],
+        &[readonly] {
+            background-color: #e9ecef;
+            opacity: 1;
+        }
+        & input {
+            background: transparent;
+            border: none;
+            outline: 0;
+            box-shadow: none;
+            flex: 1;
+        }
+        & .selected-tags {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: inline-block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            &>.tag {
+                background-color: #e4e4e4;
+                border: 1px solid #aaa;
+                cursor: default;
+                float: left;
+                margin: 0px;
+                margin-right: 5px;
+                padding: 0 5px;
+                font-size: 0.95rem;
+                &>span {
+                    color: #888;
+                    cursor: pointer;
+                    font-weight: 700;
+                    margin-right: 5px;
+                    user-select: none;
+                    &:hover {
+                        color: #555;
+                    }
+                }
+            }
+        }
+        &.form-control-lg .selected-tags .tag {
+            font-size: 1.20rem;
+        }
+        &.form-control-sm .selected-tags .tag {
+            font-size: 0.833rem;
+        }
+    }
+    & .toggler {
+        display: flex;
+        right: 10px;
+        top: 0;
+        position: absolute;
+        height: 100%;
+        &>span {
+            margin: auto;
+            user-select: none;
+            &:hover {
+                cursor: pointer;
+            }
+            &.disabled {
+                cursor: no-drop;
+            }
+        }
+    }
+    & .dropdown-menu {
+        user-select: none;
+        & .searchbox .form-group {
+            margin-bottom: 0;
+        }
+    }
+}

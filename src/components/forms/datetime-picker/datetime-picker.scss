@@ -1,49 +1,77 @@
 .datetime-picker {
-    & .dropdown-menu>table {
+    & .dropdown-menu {
         width: 250px;
         min-width: 250px;
-        height: 250px;
-        min-height: 250px;
-        user-select: none;
+        & table.calendar {
+            width: 250px;
+            min-width: 250px;
+            height: 256px;
+            min-height: 256px;
+            user-select: none;
+            margin-bottom: 0px;
+            &>tbody>tr>td,
+            &>tfoot>tr>td {
+                &:hover {
+                    background-color: rgba(0, 0, 0, 0.075);
+                    cursor: pointer;
+                }
+                &.text-off {
+                    color: #bfbfbf !important;
+                }
+                &.today {
+                    position: relative;
+                    &::before {
+                        content: '';
+                        display: inline-block;
+                        border: solid transparent;
+                        border-width: 0 0 7px 7px;
+                        border-bottom-color: #337ab7;
+                        border-top-color: rgba(0, 0, 0, 0.2);
+                        position: absolute;
+                        bottom: 4px;
+                        right: 4px;
+                    }
+                }
+            }
+            &>tfoot>tr>td {
+                padding: 0.2rem;
+            }
+        }
+        & .time-chooser {
+            height: 256px;
+            min-height: 256px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            & table {
+                margin: auto;
+                & td {
+                    padding: 10px;
+                    & .form-group {
+                        margin-bottom: 0;
+                    }
+                    & input {
+                        text-align: center;
+                    }
+                    button {
+                        width: 100%;
+                    }
+                }
+            }
+        }
     }
-    & tr>th,
-    & tr>td {
+    & th,
+    td {
+        text-align: center;
+        vertical-align: middle;
+        padding: 0;
         &>table td,
         &>table th {
             border-bottom: none;
+            padding: 0.2rem;
             &:hover {
                 background-color: rgba(0, 0, 0, 0.075);
                 cursor: pointer;
-            }
-        }
-        padding: 0;
-    }
-    & td,
-    th {
-        text-align: center;
-        vertical-align: middle;
-    }
-    & td {
-        color: #000000 !important;
-        &:hover {
-            background-color: rgba(0, 0, 0, 0.075);
-            cursor: pointer;
-        }
-        &.text-off {
-            color: #bfbfbf !important;
-        }
-        &.today {
-            position: relative;
-            &::before {
-                content: '';
-                display: inline-block;
-                border: solid transparent;
-                border-width: 0 0 7px 7px;
-                border-bottom-color: #337ab7;
-                border-top-color: rgba(0, 0, 0, 0.2);
-                position: absolute;
-                bottom: 4px;
-                right: 4px;
             }
         }
     }
@@ -61,5 +89,13 @@
         padding-top: 0px;
         margin-top: 0px;
         padding-bottom: 0px;
+    }
+    .btn-toggler {
+        width: 100%;
+        &:focus,
+        &:active {
+            outline: none;
+            box-shadow: none;
+        }
     }
 }

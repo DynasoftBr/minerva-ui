@@ -1,0 +1,20 @@
+.input-number {
+    & .spinner>.btn {
+        padding: .25rem .4rem;
+        font-size: .875rem;
+        line-height: .5;
+        margin: 0;
+        height: 50%;
+        &>span {
+            display: block;
+            height: 100%;
+        }
+        &:focus,
+        &:active {
+            box-shadow: none;
+        }
+    }
+    & .spinner>.btn:first-of-type {
+        top: 0;
+    }
+}

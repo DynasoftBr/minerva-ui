@@ -1,25 +1,25 @@
-import { Component, Vue, Prop, Watch } from "vue-property-decorator";
-import moment, { Moment } from "moment";
+import { Component, Vue, Prop, Watch, Emit } from "vue-property-decorator";
+import moment, { Moment, relativeTimeThreshold } from "moment";
 import "./datetime-picker.scss";
 import { ViewMode } from "./models/view-mode";
 import DropdownMenu from "@/components/ui-elements/dropdown-menu/dropdown-menu";
+import InputNumber from "../input-number/input-number";
+import InputMask from "../input-mask/input-mask";
+import { Granularity } from "./models/granularity";
 
 moment.locale("ru");
 
 @Component
-export default class DateTimePickerCalendar extends Vue {
+export default class DateTimePicker extends Vue {
 
     @Prop({ default: true })
     public autoClose: boolean;
 
-    @Prop({ default: () => moment() })
-    public initilDate: Date | Moment;
-
     @Prop()
     public value: Moment;
 
-    @Prop({ default: true })
-    public readonlyInput: boolean;
+    @Prop({ default: false })
+    public readonly: boolean;
 
     @Prop({ default: false })
     public disabled: boolean;
@@ -30,18 +30,38 @@ export default class DateTimePickerCalendar extends Vue {
     @Prop({ default: ViewMode.decade })
     public viewMode: ViewMode;
 
-    @Watch("value")
-    public onValueChanged(newVal: Date | Moment) {
-        this.internalValue = value;
-    }
+    @Prop({ default: true })
+    public showPickerBtn: boolean;
+
+    @Prop({ default: Granularity.time })
+    public granularity: Granularity;
 
     public baseDate = moment();
 
     public internalValue: Moment = moment();
 
+    public isPickerOpen: boolean = false;
+
     private weekDaysShort = moment.weekdaysShort(true);
 
     private internalViewMode: ViewMode = ViewMode.month;
+
+    private collapseToToggle: string = "";
+
+    private hour = moment().hour();
+
+    private minute = moment().minute();
+
+    private parentId: string;
+
+    private collapseCalendarId: string;
+
+    private collapseTimeId: string;
+
+    @Watch("value")
+    public onValueChanged(newVal: Date | Moment) {
+        this.internalValue = moment(newVal);
+    }
 
     public get currentMonth(): number {
         return this.baseDate.month();
@@ -51,10 +71,30 @@ export default class DateTimePickerCalendar extends Vue {
         return this.baseDate.year();
     }
 
+    public get formatedValue(): string {
+        return this.internalValue ? this.internalValue.format(this.format) : "";
+    }
+
+    public get formatedHour(): string {
+        const prefixed = "00" + this.hour;
+        return prefixed.substr(prefixed.length - 2);
+    }
+
+    public get formatedMinute(): string {
+        const prefixed = "00" + this.minute;
+        return prefixed.substr(prefixed.length - 2);
+    }
+
     public created() {
-        this.baseDate = moment(this.initilDate);
         this.internalViewMode = this.viewMode;
         this.internalValue = this.value;
+        this.baseDate = this.internalValue || moment();
+
+        const time = moment().format("YYYYMMDDhhmmss");
+        this.parentId = "detepicker_" + time;
+        this.collapseCalendarId = "datepicker_calendar_" + time;
+        this.collapseTimeId = "datepicker_time_" + time;
+        this.collapseToToggle = this.collapseTimeId;
     }
 
     public firstDayMonth(): Moment {
@@ -63,47 +103,143 @@ export default class DateTimePickerCalendar extends Vue {
 
     protected render(h: any) {
         return (
-            <div class="dropdown datetime-picker" v-click-outside={() => this.dropdownToggle(false)}>
-                <div class="input-group">
-                    <input class="form-control" type="text" ref="input"
-                        disabled={this.disabled ? "disabled" : undefined}
-                        readonly={this.readonlyInput ? "readonly" : undefined}
-                        value={this.internalValue = this.value} />
+            <div class="dropdown datetime-picker"
+                v-click-outside={this.isPickerOpen ? (() => this.close()) : undefined}>
+                <InputMask disabled={this.disabled}
+                    readonly={this.readonly}
+                    value={this.formatedValue}
+                    mask={{
+                        alias: "datetime",
+                        inputFormat: this.getMask(),
+                        placeholder: "_",
+                        clearIncomplete: true
+                    }}>
 
-                    <span class="input-group-append">
-                        <button type="button"
-                            onClick={() => this.dropdownToggle(true)}
-                            class="btn btn-flat"
-                            disabled={this.disabled ? "disabled" : undefined}>
-                            <span class="fa fa-calendar"></span>
-                        </button>
-                    </span>
-                </div>
+                    {this.showPickerBtn &&
+                        <template slot="append">
+                            <span class="input-group-append">
+                                <button type="button"
+                                    onClick={() => this.show()}
+                                    class="btn btn-flat"
+                                    disabled={this.disabled ? "disabled" : undefined}>
+                                    <span class="fa fa-calendar"></span>
+                                </button>
+                            </span>
+                        </template>
+                    }
+                </InputMask>
 
-                <DropdownMenu ref="dropdown">
-                    <table class="table table-sm year-view">
-                        <thead>
-                            {this.renderHeaderActions()}
-                            {this.internalViewMode == ViewMode.month &&
-                                <tr>
-                                    {this.weekDaysShort.map((el) => <th>{el}</th>)}
-                                </tr>
-                            }
-                        </thead>
-                        <tbody>
-                            {this.internalViewMode == ViewMode.month && this.renderDays()
-                                || this.internalViewMode == ViewMode.year && this.renderMonths()
-                                || this.internalViewMode == ViewMode.decade && this.renderYears()
-                            }
-                        </tbody>
-                        <tfoot>
-
-                        </tfoot>
-                    </table>
-                </DropdownMenu>
-            </div >
+                {this.isPickerOpen && this.renderDropdown()}
+            </div>
 
         );
+    }
+
+    private renderDropdown() {
+        return (
+            <DropdownMenu show={this.isPickerOpen} ref="dropdown">
+                <div class="accordion" id={this.parentId}>
+                    <div id={this.collapseCalendarId} class="collapse show" aria-labelledby="calendar"
+                        data-parent={"#" + this.parentId}>
+                        {this.renderCalendar()}
+                    </div>
+                    {this.granularity == Granularity.time &&
+                        <button class="btn btn-light btn-toggler" type="button"
+                            data-toggle="collapse"
+                            data-target={"#" + this.collapseToToggle} aria-expanded="false"
+                            aria-controls="collapseTwo"
+                            ref="btnToggleCollapse"
+                            onClick={() => this.collapseToToggle = this.collapseToToggle == this.collapseCalendarId ?
+                                this.collapseTimeId : this.collapseCalendarId}>
+                            <i class="far fa-clock fa-lg"></i>
+                        </button>
+                    }
+                    {this.granularity == Granularity.time &&
+                        <div id={this.collapseTimeId} class="collapse" aria-labelledby="time"
+                            data-parent={"#" + this.parentId}>
+                            {this.renderTimeSelector()}
+                        </div>
+                    }
+                </div>
+            </DropdownMenu>
+        );
+    }
+
+    private renderTimeSelector() {
+        return (
+            <div class="time-chooser">
+                <table>
+                    <tr>
+                        <td>
+                            <button class="btn btn-light" type="button"
+                                onClick={() => this.hour < 23 && this.hour++}>
+                                <i class="fa fa-angle-up"></i>
+                            </button>
+                        </td>
+                        <td></td>
+                        <td>
+                            <button class="btn btn-light" type="button"
+                                onClick={() => this.minute < 59 && this.minute++}>
+                                <i class="fa fa-angle-up"></i>
+                            </button>
+                        </td>
+                        <td rowspan={3}>teste</td>
+                    </tr>
+                    <tr>
+                        <td><InputMask
+                            mask={{ alias: "datetime", inputFormat: "HH" }}
+                            value={this.formatedHour} /></td>
+                        <td><b>:</b></td>
+                        <td><InputMask
+                            mask={{ alias: "datetime", inputFormat: "MM" }}
+                            value={this.formatedMinute} /></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button class="btn btn-light" type="button"
+                                onClick={() => this.hour > 0 && this.hour--}>
+                                <i class="fa fa-angle-down"></i>
+                            </button>
+                        </td>
+                        <td></td>
+                        <td>
+                            <button class="btn btn-light" type="button"
+                                onClick={() => this.minute > 0 && this.minute--}>
+                                <i class="fa fa-angle-down"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                            <button class="btn btn-light" type="button">
+                                <i class="fa fa-check"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+
+            </div >
+        );
+    }
+
+    private renderCalendar() {
+        return (
+            <table class="table table-sm year-view calendar">
+                <thead>
+                    {this.renderTableHead()}
+                    {this.internalViewMode == ViewMode.month &&
+                        <tr>
+                            {this.weekDaysShort.map((el) => <th>{el}</th>)}
+                        </tr>
+                    }
+                </thead>
+                <tbody>
+                    {this.internalViewMode == ViewMode.month && this.renderDays()
+                        || this.internalViewMode == ViewMode.year && this.renderMonths()
+                        || this.internalViewMode == ViewMode.decade && this.renderYears()
+                    }
+                </tbody>
+            </table>);
     }
 
     private renderDays() {
@@ -138,8 +274,17 @@ export default class DateTimePickerCalendar extends Vue {
     }
 
     private dayClicked(date: Moment, isDayOff: boolean) {
-        if (isDayOff) this.baseDate = moment(new Date(date.year(), date.month(), 1));
-        this.updateValue(date);
+        if (isDayOff)
+            this.baseDate = moment(new Date(date.year(), date.month(), 1));
+
+        this.internalValue = date;
+
+        if (this.granularity == Granularity.day && this.autoClose)
+            this.close();
+        else if (this.granularity == Granularity.time) {
+            const btn = this.$refs.btnToggleCollapse as HTMLButtonElement;
+            btn.click();
+        }
     }
 
     private renderMonths() {
@@ -215,7 +360,7 @@ export default class DateTimePickerCalendar extends Vue {
         return Number.parseInt(this.currentYear.toString().replace(/.$/, "0"));
     }
 
-    private renderHeaderActions() {
+    private renderTableHead() {
         let title: string;
         switch (this.internalViewMode) {
             case ViewMode.month:
@@ -226,7 +371,7 @@ export default class DateTimePickerCalendar extends Vue {
 
             case ViewMode.decade:
                 const firstYear = this.firstYearDecade();
-                title = firstYear + " - " + (firstYear + 9); break;
+                title = `${firstYear} - ${firstYear + 9}`; break;
 
             default:
                 break;
@@ -238,11 +383,11 @@ export default class DateTimePickerCalendar extends Vue {
                 <th colspan={colspan}>
                     <table width="100%" height="100%">
                         <thead>
-                            <th width="15%" onClick={() => this.movPrev()}>&lsaquo;</th>
+                            <th width="15%" onClick={() => this.navigate("prev")}>&lsaquo;</th>
                             <th onClick={() => this.upViewMode()}>
                                 {title}
                             </th>
-                            <th width="15%" onClick={() => this.movNext()}>&rsaquo;</th>
+                            <th width="15%" onClick={() => this.navigate("next")}>&rsaquo;</th>
                         </thead>
                     </table>
                 </th>
@@ -250,72 +395,52 @@ export default class DateTimePickerCalendar extends Vue {
         );
     }
 
-    private movPrev() {
-        console.log(this.internalViewMode);
+    private navigate(dir: "next" | "prev") {
+        const func = (amount: number, unit: moment.unitOfTime.DurationConstructor) => {
+            if (dir == "next")
+                return moment(this.baseDate.add(amount, unit));
+
+            return moment(this.baseDate.subtract(amount, unit));
+        };
+
         switch (this.internalViewMode) {
             case ViewMode.month:
-                return this.baseDate = moment(this.baseDate.subtract(1, "months"));
+                return this.baseDate = func(1, "months");
 
             case ViewMode.year:
-                return this.baseDate = moment(this.baseDate.subtract(1, "years"));
+                return this.baseDate = func(1, "years");
 
             case ViewMode.decade:
-                return this.baseDate = moment(this.baseDate.subtract(10, "years"));
-
-            default:
-                break;
-        }
-    }
-
-    private movNext() {
-        switch (this.internalViewMode) {
-            case ViewMode.month:
-                return this.baseDate = moment(this.baseDate.add(1, "months"));
-
-            case ViewMode.year:
-                return this.baseDate = moment(this.baseDate.add(1, "years"));
-
-            case ViewMode.decade:
-                return this.baseDate = moment(this.baseDate.add(10, "years"));
-
-            default:
-                break;
+                return this.baseDate = func(10, "years");
         }
     }
 
     private upViewMode() {
-        switch (this.internalViewMode) {
-            case ViewMode.month:
-                return this.internalViewMode = ViewMode.year;
-
-            case ViewMode.year:
-                return this.internalViewMode = ViewMode.decade;
-
-            default:
-                break;
-        }
+        if (this.internalViewMode == ViewMode.month)
+            return this.internalViewMode = ViewMode.year;
+        else if (this.internalViewMode == ViewMode.year)
+            return this.internalViewMode = ViewMode.decade;
     }
 
     private mountDate(day: number) {
         return moment(new Date(this.currentYear, this.currentMonth, day));
     }
 
-    private dropdownToggle(val: boolean) {
-        if (val)
-            (this.$refs.dropdown as DropdownMenu).show();
-        else
-            (this.$refs.dropdown as DropdownMenu).close();
+    private getMask() {
+        return this.format
+            .replace(new RegExp("D", "g"), "d")
+            .replace(new RegExp("Y", "g"), "y")
+            .replace(new RegExp("m", "g"), "M");
     }
 
-    private updateValue(value: Moment) {
-        const input = this.$refs.input as HTMLInputElement;
+    @Emit()
+    private show() {
+        this.isPickerOpen = true;
+    }
 
-        input.value = value.format(this.format);
-        this.$emit("input", input.value);
-        this.$emit("change", input.value);
-
-        if (this.autoClose) {
-            this.dropdownToggle(false);
-        }
+    @Emit()
+    private close() {
+        this.isPickerOpen = false;
+        this.collapseToToggle = this.collapseTimeId;
     }
 }

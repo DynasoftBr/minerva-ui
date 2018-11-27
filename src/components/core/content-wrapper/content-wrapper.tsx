@@ -6,7 +6,8 @@ import TableColumn from "@/components/ui-elements/data-table/table-column/table-
 import { DataResponse } from "@/components/ui-elements/data-table/models/data-response";
 import { DataRequest } from "@/components/ui-elements/data-table/models/data-request";
 import DataFilter from "@/components/ui-elements/data-filter/data-filter";
-import DateTimePickerCalendar from "@/components/forms/datetime-picker/datetime-picker";
+import DateTimePicker from "@/components/forms/datetime-picker/datetime-picker";
+import CustomSelect from "@/components/forms/minerva-select/minerva-select";
 
 @Component
 export default class ContentWrapper extends Vue {
@@ -24,7 +25,8 @@ export default class ContentWrapper extends Vue {
                 <div class="content">
                     <div class="container-fluid">
                         <Card>
-                            <DateTimePickerCalendar></DateTimePickerCalendar>
+                            <CustomSelect></CustomSelect>
+                            <DateTimePicker></DateTimePicker>
                             <DataFilter></DataFilter>
                             <DataTable
                                 loadDataFunc={(request) => this.loadData(request)}
@@ -37,8 +39,9 @@ export default class ContentWrapper extends Vue {
                                     cellTemplate: "col2CellTemplate"
                                 }]}
                                 scopedSlots={{
-                                    col1Template: (col) => <div>{col}<i class="fa fa-dashboard"></i></div>,
-                                    col2CellTemplate: (obj) => <div>{obj.value}<i class="fa fa-dashboard"></i></div>
+                                    col1Template: (col) => <div>{col}<i class="fa fa-tachometer-alt"></i></div>,
+                                    col2CellTemplate: (obj) => (<div>{obj.value}
+                                        <i class="fa fa-tachometer-alt"></i></div>)
                                 }}>
 
                             </DataTable>

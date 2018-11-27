@@ -9,15 +9,18 @@ export default class DropdownItem extends Vue {
     @Prop({ default: "#" })
     public href: string;
 
-    @Prop({ default: true })
+    @Prop({ default: false })
     public hasChild: boolean;
+
+    @Prop({ default: false })
+    public active: any;
 
     protected render(h: any) {
         if (this.hasChild) {
             return (
                 <div>
                     <button class="dropdown-item has-child"
-                        onClick={(e: Event) => e.stopPropagation()}>
+                        onClick={(e: Event) => this.itemClick(e)}>
                         {this.$slots.default}
                     </button>
                     <div class="dropdown-item-children">
@@ -35,16 +38,23 @@ export default class DropdownItem extends Vue {
 
     private renderA() {
         return (
-            <a class="dropdown-item subitem" onClick={(e: Event) => e.stopPropagation()}
+            <a class={{ "dropdown-item": true, active: this.active }}
+                onClick={(e: Event) => this.itemClick(e)}
                 href={this.href}>{this.$slots.default}</a>
         );
     }
 
     private renderButton() {
         return (
-            <button class="dropdown-item subitem" onClick={(e: Event) => e.stopPropagation()}>
+            <button class={{ "dropdown-item": true, active: this.active }}
+                onClick={(e: Event) => this.itemClick(e)}>
                 {this.$slots.default}</button>
         );
     }
 
+    private itemClick(e: Event): any {
+        e.stopPropagation();
+
+        this.$emit("click", e);
+    }
 }

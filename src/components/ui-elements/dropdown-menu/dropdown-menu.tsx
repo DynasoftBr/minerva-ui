@@ -1,4 +1,4 @@
-import { Component, Vue, Prop } from "vue-property-decorator";
+import { Component, Vue, Prop, Emit } from "vue-property-decorator";
 import { ClickOutside } from "@/directives/click-outside";
 
 @Component({
@@ -8,20 +8,24 @@ import { ClickOutside } from "@/directives/click-outside";
 })
 export default class DropdownMenu extends Vue {
 
-    public isShown: boolean = false;
+    @Prop({ default: false })
+    public show: boolean;
 
-    public show() {
-        this.isShown = true;
-    }
+    @Prop()
+    public width: string;
 
-    public close() {
-        this.isShown = false;
+    protected updated() {
+        if (this.show)
+            this.$emit("show");
+        else
+            this.$emit("hide");
     }
 
     protected render(h: any) {
         return (
-            <div class={{ "dropdown-menu": true, "show": this.isShown }}
-                aria-labelledby="dropdown-menu">
+            <div class={{ "dropdown-menu": true, "show": this.show }}
+                style={{ width: this.width }}
+                aria-labelledby="dropdown-menu" >
                 {this.$slots.default}
             </div>
         );

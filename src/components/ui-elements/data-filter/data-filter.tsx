@@ -23,24 +23,24 @@ export default class DataFilter extends Vue {
                                     <template slot="items">
                                         <DropdownTreeview nodes={[{
                                             text: "1",
-                                            icon: "fa fa-dashboard",
+                                            icon: "fa fa-tachometer-alt",
                                             open: true,
                                             children: [
                                                 {
                                                     text: "2",
-                                                    icon: "fa fa-dashboard",
+                                                    icon: "fa fa-tachometer-alt",
                                                     children: [
                                                         {
                                                             text: "3",
-                                                            icon: "fa fa-dashboard",
+                                                            icon: "fa fa-tachometer-alt",
                                                             children: [
                                                                 {
                                                                     text: "4",
-                                                                    icon: "fa fa-dashboard"
+                                                                    icon: "fa fa-tachometer-alt"
                                                                 },
                                                                 {
                                                                     text: "5",
-                                                                    icon: "fa fa-dashboard"
+                                                                    icon: "fa fa-tachometer-alt"
                                                                 }
                                                             ]
                                                         }

@@ -17,8 +17,11 @@
       "chai"
     ],
     "paths": {
+      "*": [
+        "types/*"
+      ],
       "@/*": [
-        "src/*"
+        "src/*",
       ]
     },
     "lib": [
@@ -33,7 +36,17 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "tests/**/*.ts",
-    "tests/**/*.tsx", "src/template/js/adminlte.js", "src/template/js/widget.js", "src/template/js/treeview.js", "src/template/js/site-search.js", "src/template/js/push-menu.js", "src/template/js/layout.js", "src/template/js/control-sidebar.js", "test2.js", "test.js"
+    "tests/**/*.tsx",
+    "src/template/js/adminlte.js",
+    "src/template/js/widget.js",
+    "src/template/js/treeview.js",
+    "src/template/js/site-search.js",
+    "src/template/js/push-menu.js",
+    "src/template/js/layout.js",
+    "src/template/js/control-sidebar.js",
+    "test2.js",
+    "test.js",
+    "types/imask.d.ts", "types/text-mask-addons.d.ts"
   ],
   "exclude": [
     "node_modules"
