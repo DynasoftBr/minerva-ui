@@ -14,11 +14,20 @@ export default class DropdownMenu extends Vue {
     @Prop()
     public width: string;
 
+    private internalShow: boolean = false;
+    protected mounted() {
+        this.internalShow = this.show;
+    }
+
     protected updated() {
-        if (this.show)
-            this.$emit("show");
-        else
-            this.$emit("hide");
+        if (this.show != this.internalShow) {
+            if (this.show)
+                this.$emit("show");
+            else
+                this.$emit("hide");
+
+            this.internalShow = this.show;
+        }
     }
 
     protected render(h: any) {

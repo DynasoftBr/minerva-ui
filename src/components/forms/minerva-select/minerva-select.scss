@@ -72,8 +72,18 @@
     }
     & .dropdown-menu {
         user-select: none;
+        min-width: 100%;
         & .searchbox .form-group {
             margin-bottom: 0;
+        }
+        & .dropdown-item[aria-selected=true] {
+            background-color: #ddd;
+            color: #212529;
+        }
+        & .dropdown-item:hover,
+        & .dropdown-item:active {
+            color: #ffffff;
+            background-color: #007bff;
         }
     }
 }

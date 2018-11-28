@@ -15,8 +15,8 @@ export default class MinervaSelect extends Vue {
     @Prop({ default: false })
     public disabled: boolean;
 
-    @Prop({ default: () => ["1"] })
-    public value: string | any[];
+    @Prop({ default: () => ([{ display: "teste", value: "1" }]) })
+    public value: any | any[];
 
     @Prop()
     public placeholder: string;
@@ -30,26 +30,35 @@ export default class MinervaSelect extends Vue {
     @Prop({ default: "value" })
     public valueProp: string;
 
-    @Prop({ default: 0 })
+    @Prop({ default: 3 })
     public minCharSearch: number;
 
-    @Prop({ default: () => (search) => [{ display: "teste", value: "1" }, { display: "teste2", value: "2" }] })
+    @Prop({ default: true })
+    public keepLastSearch: boolean;
+
+    @Prop({
+        default: () => (search) => {
+            return new Promise<any[]>((resolve, reject) => {
+                setTimeout(() => {
+                    resolve([{ display: "teste", value: "1" }, { display: "teste2", value: "2" }]);
+                }, 5000);
+            });
+        }
+    })
     public items: any[] | ((filter: string) => any[] | Promise<any[]>);
 
     public isShown = false;
 
-    private internalValue: string | string[] | object | object[] = "";
+    private internalValue: any | any[] = "";
 
-    private internalItems: string[] | object[] = [];
+    private internalItems: any[] = [];
 
     private searchTerm: string = "";
 
+    private searching: boolean = false;
+
     private get multiSelect(): boolean {
         return Array.isArray(this.internalValue);
-    }
-
-    public get inputEl(): HTMLInputElement {
-        return this.$refs.input as HTMLInputElement;
     }
 
     public get searchBox(): HTMLInputElement {
@@ -57,10 +66,12 @@ export default class MinervaSelect extends Vue {
     }
 
     public get inputValue(): string {
-        if (typeof this.internalValue == "string") {
-            return this.internalValue;
-        } else if (typeof this.internalValue == "object" && this.internalValue != null) {
-            return this.internalValue[this.displayProp];
+        if (!this.multiSelect) {
+            if (typeof this.internalValue == "object" && this.internalValue != null) {
+                return this.internalValue[this.displayProp];
+            } else {
+                return this.internalValue;
+            }
         }
     }
 
@@ -73,15 +84,22 @@ export default class MinervaSelect extends Vue {
         this.internalValue = this.value;
 
         if (Array.isArray(this.items)) {
+
             this.internalItems = this.items;
+
+        } else if (typeof this.items == "function"
+            && this.minCharSearch <= 0) {
+
+            this.search();
         }
     }
 
     protected render(h: any) {
         let content = (
-            <div class="form-control form-control-sm" tabindex="0" onFocus={() => this.showDropdown()}>
+            <div class="form-control form-control-sm" tabindex="0"
+                onClick={(e) => this.onFormControlClick(e)}>
                 {this.multiSelect && this.renderTags()}
-                {this.inputControl()}
+                {this.inputValue}
                 {this.renderToggler()}
             </div>
         );
@@ -92,30 +110,6 @@ export default class MinervaSelect extends Vue {
         return content;
     }
 
-    private inputControl() {
-        return (
-            <input type="search"
-                ref="input"
-                disabled={this.disabled ? "disabled" : undefined}
-                readonly={this.readonly || !this.multiSelect ? "readonly" : undefined}
-                value={this.inputValue}
-                placeholder={this.placeholder}
-                onFocus={() => this.showDropdown()}
-                onKeydown={(e) => this.handleTab(e)}
-                onInput={(e) => ""} />
-        );
-    }
-
-    private wrapWithComponentDiv(content: JSX.Element) {
-        return (
-            <div class="minerva-select" aria-expandable="true"
-                v-click-outside={this.isShown ? (() => this.hideDropdown()) : undefined}>
-                {content}
-                {this.renderDropdown()}
-            </div>
-        );
-    }
-
     private renderTags() {
         return (
             <ul class="selected-tags">
@@ -124,8 +118,10 @@ export default class MinervaSelect extends Vue {
                     let display;
 
                     if (typeof el == "object" && el != null) {
+
                         val = el[this.valueProp];
                         display = el[this.displayProp];
+
                     } else {
                         display = val = el;
                     }
@@ -141,58 +137,56 @@ export default class MinervaSelect extends Vue {
         );
     }
 
+    private onFormControlClick(e: Event): any {
+        const el = e.target as HTMLElement;
+        if (el.classList.contains("form-control"))
+            this.toggleDropdown();
+    }
+
+    private wrapWithComponentDiv(content: JSX.Element) {
+        return (
+            <div class="minerva-select" aria-expandable="true"
+                v-click-outside={this.isShown ? (() => this.hideDropdown()) : undefined}>
+                {content}
+                {this.renderDropdown()}
+            </div>
+        );
+    }
+
     private renderDropdown() {
         return (
-            <DropdownMenu show={this.isShown} ref="dropdown" width="100%"
+            <DropdownMenu show={this.isShown} ref="dropdown"
                 onShow={() => this.onDropdownToggle()}
                 onHide={() => this.onDropdownToggle()}>
+                {this.searchHeader()}
+                {(this.searchTerm.length < this.minCharSearch) && this.charsLeftWarn()}
+                {this.searching && this.searchingInfo()}
                 {this.renderItems()}
             </DropdownMenu>
         );
     }
 
-    private onDropdownToggle(): any {
-        if (this.isShown) {
-            this.searchBox.focus();
-            this.$emit("show");
-        } else {
-            this.$emit("hide");
-        }
+    private charsLeftWarn(): any {
+        return (
+            <DropdownHeader>
+                <h6>Enter {this.minCharSearch - this.searchTerm.length} or more characters to search...</h6>
+            </DropdownHeader>
+        );
     }
 
-    private renderItems() {
-        if (this.internalItems.length > 0) {
-            const renderedItems = [
-                ...this.searchHeader()
-            ];
-
-            renderedItems.push(...this.renderIntenalItems());
-            return renderedItems;
-        } else if (typeof this.items == "function" && this.minCharSearch <= 0) {
-            const result = this.items("");
-
-            if (result && Object.prototype.toString.call(result) === "[object Promise]") {
-                (result as Promise<[]>).then((items) => {
-                    this.internalItems = items;
-                });
-            } else if (result && Array.isArray(result)) {
-                this.internalItems = result;
-            } else if (result != null) {
-                throw new Error("Result of items function must be an array.");
-            }
-
-        } else if (typeof this.items == "function" && this.minCharSearch > 0) {
-            return (
-                <div><span>waiting...</span></div>
-            );
-        }
-
+    private searchingInfo(): any {
+        return (
+            <DropdownHeader>
+                <i class="fas fa-spinner fa-spin"></i><h6>Searching...</h6>
+            </DropdownHeader>
+        );
     }
 
     private searchHeader(): any[] {
         return [
             <DropdownHeader header-small={true}>
                 <InputText class="searchbox"
+                    value={this.searchTerm}
                     tab-index={0}
                     auto-complete="off"
                     auto-capitalize="none"
@@ -200,28 +194,37 @@ export default class MinervaSelect extends Vue {
                     placeholder="Search..."
                     size="s"
                     ref="searchBox"
-                    onInput={(e: KeyboardEvent) => this.searchTerm = (e.target as any).value} />
+                    onInput={(e: KeyboardEvent) => this.onSearchInput()} />
             </DropdownHeader>,
             <DropdownDivider />
         ];
     }
 
-    private renderIntenalItems() {
+    private onSearchInput(): any {
+        this.searchTerm = this.searchBox.value;
+        if (this.searchTerm.length >= this.minCharSearch) {
+            this.search();
+        } else {
+            this.internalItems = [];
+            this.searching = false;
+        }
+    }
+
+    private renderItems() {
+
         return (this.internalItems as any[]).map((item) => {
-            let val: string;
             let display: string;
 
             if (typeof item == "object") {
-                val = item[this.valueProp];
                 display = item[this.displayProp];
             } else {
-                display = val = item;
+                display = item;
             }
 
             return (
-                <DropdownItem data-value={item.value}
-                    active={this.isSelected(val)}
-                    onClick={(e) => this.itemClick(e, val)}>{display}</DropdownItem>
+                <DropdownItem
+                    aria-selected={this.isSelected(item)}
+                    onClick={(e) => this.itemClick(e, item)}>{display}</DropdownItem>
             );
         });
     }
@@ -229,12 +232,12 @@ export default class MinervaSelect extends Vue {
     private renderToggler(): any {
         return (
             <div class="toggler">
-                <span class={{
+                <span tabindex="-1" class={{
                     "fa": true, "fa-angle-down": !this.isShown,
                     "fa-angle-up": this.isShown,
                     "disabled": this.readonly || this.disabled
                 }}
-                    onClick={() => this.inputEl.focus()}></span>
+                    onClick={(e) => this.toggleDropdown()}></span>
             </div>
         );
     }
@@ -266,27 +269,49 @@ export default class MinervaSelect extends Vue {
         }
     }
 
-    private handleTab(e: KeyboardEvent) {
-        const code = (e.keyCode ? e.keyCode : e.which);
+    private search() {
 
-        if (code == 9 && !e.ctrlKey && !e.altKey) {
-            this.hideDropdown();
+        this.searching = true;
+
+        const result = (this.items as (search) => any)("");
+
+        if (result && Object.prototype.toString.call(result) === "[object Promise]") {
+
+            (result as Promise<[]>).then((items) => {
+                if (this.searching == true) {
+                    this.internalItems = items;
+                    this.searching = false;
+                }
+            });
+
+        } else if (result && Array.isArray(result)) {
+
+            this.internalItems = result;
+            this.searching = false;
+
+        } else if (result != null) {
+            throw new Error("Result of items function must be an array.");
         }
     }
 
     @Emit()
     @Emit("input")
-    private itemClick(e: MouseEvent, val: string): any {
-        // doing this to avoid flickering the active state.
-        let el: Element = e.target as Element;
+    private itemClick(e: MouseEvent, val: any) {
 
-        if (!el.classList.contains("dropdown-item"))
-            el = el.closest(".dropdown-item");
+        if (this.multiSelect) {
+            let idx = -1;
 
-        el.classList.add("active");
+            if (typeof val == "object") {
+                const found = (this.internalValue as []).find((itm) => {
+                    return itm[this.valueProp] === val[this.valueProp];
+                });
 
-        if (Array.isArray(this.internalValue)) {
-            const idx = (this.internalValue as any[]).indexOf(val);
+                idx = (this.internalValue as []).indexOf(found);
+                console.log(idx);
+            } else {
+                idx = (this.internalValue as any[]).indexOf(val);
+            }
+
             if (idx == -1) {
                 (this.internalValue as any).push(val);
             } else {
@@ -299,10 +324,40 @@ export default class MinervaSelect extends Vue {
     }
 
     private isSelected(val) {
-        if (Array.isArray(this.internalValue)) {
-            return (this.internalValue as any).indexOf(val) > -1;
+        if (this.multiSelect) {
+
+            if (typeof val == "object") {
+                const found = (this.internalValue as []).find((el) => {
+                    return el[this.valueProp] === val[this.valueProp];
+                });
+
+                return found != null;
+            } else {
+                return (this.internalValue as any[]).indexOf(val) > -1;
+            }
         } else {
-            return val === this.internalValue;
+            if (typeof val == "object") {
+                return this.internalValue[this.valueProp] === val[this.valueProp];
+            } else {
+                return val === this.internalValue;
+            }
+        }
+    }
+
+    private onDropdownToggle(): any {
+        if (this.isShown) {
+            this.searchBox.focus();
+            this.$emit("show");
+        } else {
+            if (!this.keepLastSearch) {
+                this.searchTerm = "";
+                this.searching = false;
+
+                if (this.minCharSearch > 0)
+                    this.internalItems = [];
+            }
+
+            this.$emit("hide");
         }
     }
 
@@ -316,5 +371,12 @@ export default class MinervaSelect extends Vue {
         if (this.isShown) {
             this.isShown = false;
         }
+    }
+
+    private toggleDropdown() {
+        if (this.isShown)
+            this.hideDropdown();
+        else
+            this.showDropdown();
     }
 }
