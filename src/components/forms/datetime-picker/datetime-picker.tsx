@@ -1,13 +1,11 @@
 import { Component, Vue, Prop, Watch, Emit } from "vue-property-decorator";
 import moment, { Moment, relativeTimeThreshold } from "moment";
-import "./datetime-picker.scss";
 import { ViewMode } from "./models/view-mode";
 import DropdownMenu from "@/components/ui-elements/dropdown-menu/dropdown-menu";
-import InputNumber from "../input-number/input-number";
 import InputMask from "../input-mask/input-mask";
 import { Granularity } from "./models/granularity";
-
-moment.locale("ru");
+import MinervaSelect from "../minerva-select/minerva-select";
+import "./datetime-picker.scss";
 
 @Component
 export default class DateTimePicker extends Vue {
@@ -24,7 +22,7 @@ export default class DateTimePicker extends Vue {
     @Prop({ default: false })
     public disabled: boolean;
 
-    @Prop({ default: moment.localeData().longDateFormat("L") + " " + moment.localeData().longDateFormat("LT") })
+    @Prop()
     public format: string;
 
     @Prop({ default: ViewMode.decade })
@@ -35,6 +33,9 @@ export default class DateTimePicker extends Vue {
 
     @Prop({ default: Granularity.time })
     public granularity: Granularity;
+
+    @Prop()
+    public locale: string;
 
     public baseDate = moment();
 
@@ -58,6 +59,12 @@ export default class DateTimePicker extends Vue {
 
     private collapseTimeId: string;
 
+    private internalMoment: Moment = moment();
+
+    private internalLocale = "";
+
+    private internalFormat = "";
+
     @Watch("value")
     public onValueChanged(newVal: Date | Moment) {
         this.internalValue = moment(newVal);
@@ -72,7 +79,7 @@ export default class DateTimePicker extends Vue {
     }
 
     public get formatedValue(): string {
-        return this.internalValue ? this.internalValue.format(this.format) : "";
+        return this.internalValue ? this.internalValue.format(this.internalFormat) : "";
     }
 
     public get formatedHour(): string {
@@ -85,20 +92,39 @@ export default class DateTimePicker extends Vue {
         return prefixed.substr(prefixed.length - 2);
     }
 
-    public created() {
+    @Watch("format")
+    protected onFormatChange() {
+        if (this.format)
+            this.internalFormat = this.format;
+    }
+
+    @Watch("locale")
+    protected onChangeLocale() {
+        this.internalLocale = this.locale;
+        this.internalMoment.locale(this.internalLocale);
+
+        if (this.internalFormat === "" || this.internalFormat == null) {
+            this.internalFormat = (this.internalMoment.localeData().longDateFormat("L")
+                + " " + this.internalMoment.localeData().longDateFormat("LT"));
+        }
+    }
+
+    protected created() {
         this.internalViewMode = this.viewMode;
         this.internalValue = this.value;
         this.baseDate = this.internalValue || moment();
 
+        this.internalLocale = this.locale || moment.locale();
+        this.internalMoment = moment().locale(this.internalLocale);
+        this.internalFormat = this.format || (this.internalMoment.localeData().longDateFormat("L")
+            + " " + this.internalMoment.localeData().longDateFormat("LT"));
+
+        // Set ids for collapse.
         const time = moment().format("YYYYMMDDhhmmss");
         this.parentId = "detepicker_" + time;
         this.collapseCalendarId = "datepicker_calendar_" + time;
         this.collapseTimeId = "datepicker_time_" + time;
         this.collapseToToggle = this.collapseTimeId;
-    }
-
-    public firstDayMonth(): Moment {
-        return this.mountDate(1);
     }
 
     protected render(h: any) {
@@ -183,7 +209,7 @@ export default class DateTimePicker extends Vue {
                                 <i class="fa fa-angle-up"></i>
                             </button>
                         </td>
-                        <td rowspan={3}>teste</td>
+                        <td rowspan={3}><MinervaSelect allowSearch={false} items={["AM", "PM"]}></MinervaSelect></td>
                     </tr>
                     <tr>
                         <td><InputMask
@@ -217,8 +243,7 @@ export default class DateTimePicker extends Vue {
                         </td>
                     </tr>
                 </table>
-
-            </div >
+            </div>
         );
     }
 
@@ -288,7 +313,7 @@ export default class DateTimePicker extends Vue {
     }
 
     private renderMonths() {
-        const shortMonthsNames = moment.localeData().monthsShort();
+        const shortMonthsNames = this.internalMoment.localeData().monthsShort();
         const rows = [];
         const today = moment();
         const dateToCompare = moment(new Date(this.currentYear, 0, 1));
@@ -422,15 +447,27 @@ export default class DateTimePicker extends Vue {
             return this.internalViewMode = ViewMode.decade;
     }
 
+    private firstDayMonth(): Moment {
+        return this.mountDate(1);
+    }
+
+    private isMeridiem() {
+        return this.internalMoment.localeData().longDateFormat("LT").toLocaleLowerCase().indexOf("a") > -1;
+    }
+
     private mountDate(day: number) {
         return moment(new Date(this.currentYear, this.currentMonth, day));
     }
 
     private getMask() {
-        return this.format
+        const formatL = moment.localeData().longDateFormat("LT");
+
+        return this.internalFormat
             .replace(new RegExp("D", "g"), "d")
             .replace(new RegExp("Y", "g"), "y")
-            .replace(new RegExp("m", "g"), "M");
+            .replace(new RegExp("m", "g"), "M")
+            .replace(new RegExp("a", "g"), "tt")
+            .replace(new RegExp("A", "g"), "TT");
     }
 
     @Emit()

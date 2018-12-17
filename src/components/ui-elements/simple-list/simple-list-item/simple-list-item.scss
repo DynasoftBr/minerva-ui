@@ -1,0 +1,9 @@
+.simple-list-item {
+    &>span {
+        display: block;
+        padding: 0.5rem 1rem;
+    }
+    &:hover {
+        background-color: rgb(220, 220, 220);
+    }
+}

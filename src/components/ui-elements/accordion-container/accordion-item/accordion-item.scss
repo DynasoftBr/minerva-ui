@@ -1,0 +1,14 @@
+.accordion-item {
+    & .card-header {
+        &>.heading>button.btn.btn-link {
+            outline: none;
+            cursor: pointer;
+            user-select: none;
+            padding: 0;
+            border: none;
+            &:active:focus {
+                box-shadow: none;
+            }
+        }
+    }
+}

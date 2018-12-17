@@ -32,6 +32,10 @@
     "no-angle-bracket-type-assertion": false,
     "triple-equals": false,
     "no-empty": false,
-    "radix": false
+    "radix": false,
+    "no-bitwise": false,
+    "align": false,
+    "unified-signatures": false,
+    "ban-types": false
   }
 }

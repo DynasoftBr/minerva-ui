@@ -11,12 +11,9 @@
             background-color: #e9ecef;
             opacity: 1;
         }
-        & input {
-            background: transparent;
-            border: none;
-            outline: 0;
-            box-shadow: none;
+        & .content {
             flex: 1;
+            padding-inline-end: 5px;
         }
         & .selected-tags {
             list-style: none;
@@ -55,10 +52,6 @@
     }
     & .toggler {
         display: flex;
-        right: 10px;
-        top: 0;
-        position: absolute;
-        height: 100%;
         &>span {
             margin: auto;
             user-select: none;

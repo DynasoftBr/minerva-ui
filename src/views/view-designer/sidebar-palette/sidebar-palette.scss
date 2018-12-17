@@ -1,0 +1,12 @@
+.sidebar-palette {
+    & .palette-list-item {
+        & .simple-list-item {
+            & .fa {
+                padding-right: 10px;
+            }
+        }
+    }
+    .sortable-chosen.sortable-ghost {
+        border: 1px dashed;
+    }
+}

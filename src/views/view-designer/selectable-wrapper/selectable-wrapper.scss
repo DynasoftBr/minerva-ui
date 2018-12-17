@@ -1,0 +1,13 @@
+.selectable-wrapper {
+    position: relative;
+    & .actions {
+        position: absolute;
+        top: -10px;
+        right: 13px;
+        & button {
+            margin: 2px;
+            padding: 0.05rem 0.35rem;
+            font-size: 0.675rem;
+        }
+    }
+}

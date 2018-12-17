@@ -15,7 +15,7 @@ export default class MinervaSelect extends Vue {
     @Prop({ default: false })
     public disabled: boolean;
 
-    @Prop({ default: () => ([{ display: "teste", value: "1" }]) })
+    @Prop()
     public value: any | any[];
 
     @Prop()
@@ -30,22 +30,20 @@ export default class MinervaSelect extends Vue {
     @Prop({ default: "value" })
     public valueProp: string;
 
-    @Prop({ default: 3 })
+    @Prop({ default: 0 })
     public minCharSearch: number;
 
     @Prop({ default: true })
     public keepLastSearch: boolean;
 
-    @Prop({
-        default: () => (search) => {
-            return new Promise<any[]>((resolve, reject) => {
-                setTimeout(() => {
-                    resolve([{ display: "teste", value: "1" }, { display: "teste2", value: "2" }]);
-                }, 5000);
-            });
-        }
-    })
+    @Prop({ default: true })
+    public allowSearch: boolean;
+
+    @Prop()
     public items: any[] | ((filter: string) => any[] | Promise<any[]>);
+
+    @Prop({ default: "m" })
+    public size: "s" | "m" | "l";
 
     public isShown = false;
 
@@ -75,6 +73,10 @@ export default class MinervaSelect extends Vue {
         }
     }
 
+    public get shouldAllowSearch(): boolean {
+        return this.allowSearch && typeof this.items == "function";
+    }
+
     @Watch("value")
     protected onValueChange() {
         this.internalValue = this.value;
@@ -88,7 +90,7 @@ export default class MinervaSelect extends Vue {
             this.internalItems = this.items;
 
         } else if (typeof this.items == "function"
-            && this.minCharSearch <= 0) {
+            && (!this.allowSearch || this.minCharSearch <= 0)) {
 
             this.search();
         }
@@ -96,10 +98,16 @@ export default class MinervaSelect extends Vue {
 
     protected render(h: any) {
         let content = (
-            <div class="form-control form-control-sm" tabindex="0"
+            <div class={{
+                "form-control": true,
+                "form-control-lg": this.size == "l",
+                "form-control-sm": this.size == "s",
+            }} tabindex="0"
                 onClick={(e) => this.onFormControlClick(e)}>
-                {this.multiSelect && this.renderTags()}
-                {this.inputValue}
+                <div class="content">
+                    {this.multiSelect && this.renderTags()}
+                    {this.inputValue}
+                </div>
                 {this.renderToggler()}
             </div>
         );
@@ -139,7 +147,8 @@ export default class MinervaSelect extends Vue {
 
     private onFormControlClick(e: Event): any {
         const el = e.target as HTMLElement;
-        if (el.classList.contains("form-control"))
+        if (el.classList.contains("form-control")
+            || el.classList.contains("content"))
             this.toggleDropdown();
     }
 
@@ -158,15 +167,15 @@ export default class MinervaSelect extends Vue {
             <DropdownMenu show={this.isShown} ref="dropdown"
                 onShow={() => this.onDropdownToggle()}
                 onHide={() => this.onDropdownToggle()}>
-                {this.searchHeader()}
-                {(this.searchTerm.length < this.minCharSearch) && this.charsLeftWarn()}
+                {this.shouldAllowSearch && this.searchHeader()}
+                {this.shouldAllowSearch && (this.searchTerm.length < this.minCharSearch) && this.charsLeftInfo()}
                 {this.searching && this.searchingInfo()}
                 {this.renderItems()}
             </DropdownMenu>
         );
     }
 
-    private charsLeftWarn(): any {
+    private charsLeftInfo(): any {
         return (
             <DropdownHeader>
                 <h6>Enter {this.minCharSearch - this.searchTerm.length} or more characters to search...</h6>
@@ -192,7 +201,7 @@ export default class MinervaSelect extends Vue {
                     auto-capitalize="none"
                     spell-check={false}
                     placeholder="Search..."
-                    size="s"
+                    size={this.size}
                     ref="searchBox"
                     onInput={(e: KeyboardEvent) => this.onSearchInput()} />
             </DropdownHeader>,
@@ -231,13 +240,13 @@ export default class MinervaSelect extends Vue {
 
     private renderToggler(): any {
         return (
-            <div class="toggler">
+            <div class="toggler d-flex justify-content-end"
+                onClick={(e) => this.toggleDropdown()}>
                 <span tabindex="-1" class={{
                     "fa": true, "fa-angle-down": !this.isShown,
                     "fa-angle-up": this.isShown,
                     "disabled": this.readonly || this.disabled
-                }}
-                    onClick={(e) => this.toggleDropdown()}></span>
+                }}></span>
             </div>
         );
     }
@@ -277,7 +286,7 @@ export default class MinervaSelect extends Vue {
 
         if (result && Object.prototype.toString.call(result) === "[object Promise]") {
 
-            (result as Promise<[]>).then((items) => {
+            (result as Promise<any[]>).then((items) => {
                 if (this.searching == true) {
                     this.internalItems = items;
                     this.searching = false;
@@ -294,20 +303,16 @@ export default class MinervaSelect extends Vue {
         }
     }
 
-    @Emit()
-    @Emit("input")
     private itemClick(e: MouseEvent, val: any) {
-
         if (this.multiSelect) {
             let idx = -1;
 
             if (typeof val == "object") {
-                const found = (this.internalValue as []).find((itm) => {
+                const found = (this.internalValue as any[]).find((itm) => {
                     return itm[this.valueProp] === val[this.valueProp];
                 });
 
-                idx = (this.internalValue as []).indexOf(found);
-                console.log(idx);
+                idx = (this.internalValue as any[]).indexOf(found);
             } else {
                 idx = (this.internalValue as any[]).indexOf(val);
             }
@@ -321,13 +326,15 @@ export default class MinervaSelect extends Vue {
             this.internalValue = val;
             this.isShown = false;
         }
+
+        this.$emit("input", this.internalValue);
     }
 
     private isSelected(val) {
         if (this.multiSelect) {
 
             if (typeof val == "object") {
-                const found = (this.internalValue as []).find((el) => {
+                const found = (this.internalValue as any[]).find((el) => {
                     return el[this.valueProp] === val[this.valueProp];
                 });
 
@@ -346,10 +353,12 @@ export default class MinervaSelect extends Vue {
 
     private onDropdownToggle(): any {
         if (this.isShown) {
-            this.searchBox.focus();
+            if (this.shouldAllowSearch) {
+                this.searchBox.focus();
+            }
             this.$emit("show");
         } else {
-            if (!this.keepLastSearch) {
+            if (this.shouldAllowSearch && !this.keepLastSearch) {
                 this.searchTerm = "";
                 this.searching = false;
 

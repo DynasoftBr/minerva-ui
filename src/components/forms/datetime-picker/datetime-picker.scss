@@ -1,7 +1,10 @@
 .datetime-picker {
-    & .dropdown-menu {
+    &>.dropdown-menu {
         width: 250px;
         min-width: 250px;
+        padding-top: 0px;
+        margin-top: 0px;
+        padding-bottom: 0px;
         & table.calendar {
             width: 250px;
             min-width: 250px;
@@ -84,11 +87,6 @@
         &>tbody>td {
             padding: 0.2rem;
         }
-    }
-    .dropdown-menu {
-        padding-top: 0px;
-        margin-top: 0px;
-        padding-bottom: 0px;
     }
     .btn-toggler {
         width: 100%;

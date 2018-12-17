@@ -4,10 +4,12 @@ import MainHeader from "@/components/core/main-header/main-header";
 import MainSidebar from "@/components/core/main-sidebar/main-sidebar";
 import ContentWrapper from "@/components/core/content-wrapper/content-wrapper";
 import MainFooter from "@/components/core/main-footer/main-footer";
-import AlternativeSidebar from "@/components/core/alternative-sidebar/alternative-sidebar";
+import ControlSidebar from "@/components/core/control-sidebar/control-sidebar";
 import SidebarOverlay from "@/components/core/sidebar-overlay/sidebar-overlay";
 import { AppRootModule, AppRootState } from "@/app-root.module";
 import { MainSidebarModule } from "@/components/core/main-sidebar/main-sidebar.module";
+import TestView from "./views/test-view/test-view";
+import ViewDesigner from "./views/view-designer/view-designer";
 
 @Component
 export default class AppRoot extends Vue {
@@ -32,14 +34,14 @@ export default class AppRoot extends Vue {
         FOOTER: ".main-footer"
     };
 
-    public mounted() {
-        this.fixLayoutHeight();
+    // public mounted() {
+    //     this.fixLayoutHeight();
 
-        this.holdTransition = false;
+    //     this.holdTransition = false;
 
-        // attach events
-        window.onresize = () => this.fixLayoutHeight();
-    }
+    //     // attach events
+    //     window.onresize = () => this.fixLayoutHeight();
+    // }
 
     protected render(h: any) {
         return (
@@ -49,15 +51,14 @@ export default class AppRoot extends Vue {
                 "sidebar-mini": this.sidebarMini,
                 "sidebar-collapse": !this.sidebarState.isOpen,
                 "fixed-header": false,
-                "sidebar-open": this.sidebarState.isOpen,
-                "d-flex": true,
-                "flex-column": true
+                "sidebar-open": this.sidebarState.isOpen
             }}>
                 <MainHeader></MainHeader>
                 <MainSidebar></MainSidebar>
                 <SidebarOverlay></SidebarOverlay>
-                <ContentWrapper title="Teste" sub-title="description"></ContentWrapper>
-                <AlternativeSidebar></AlternativeSidebar>
+                <ViewDesigner></ViewDesigner>
+                {/* <TestView></TestView> */}
+                <ControlSidebar></ControlSidebar>
                 <MainFooter></MainFooter>
             </div>
         );

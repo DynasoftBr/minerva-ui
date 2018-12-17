@@ -1,0 +1,19 @@
+.tab-control {
+    min-height: 50px;
+    & .tab-content {
+        height: calc(100% - 42px);
+    }
+    & .nav.nav-tabs {
+        & .nav-item>button.nav-link {
+            outline: none;
+            cursor: pointer;
+            user-select: none;
+        }
+    }
+    &.tab-sm {
+        &>ul>li>.btn-link {
+            padding-top: 2px;
+            padding-bottom: 2px;
+        }
+    }
+}
