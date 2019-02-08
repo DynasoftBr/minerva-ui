@@ -1,4 +1,6 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
+import Heading from "@/components/ui-elements/heading/heading";
+import "./content-header.scss";
 
 @Component
 export default class ContentHeader extends Vue {
@@ -12,13 +14,13 @@ export default class ContentHeader extends Vue {
                 <div class="container-fluid">
                     <div class="row mb-2">
                         <div class="col-sm-6">
-                            <h1 class="m-0 text-dark">
+                            <Heading size="2" class="m-0 text-dark">
                                 {this.$slots.default}
                                 {
                                     this.subTitle &&
                                     <small> {this.subTitle}</small>
                                 }
-                            </h1>
+                            </Heading>
                         </div>
                     </div>
                 </div>

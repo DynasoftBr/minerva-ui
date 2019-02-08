@@ -1,0 +1,12 @@
+.component-actions {
+    position: absolute;
+    top: 0;
+    right: 5px;
+    &>i {
+        opacity: .3;
+        cursor: pointer;
+        &:hover {
+            opacity: 1;
+        }
+    }
+}

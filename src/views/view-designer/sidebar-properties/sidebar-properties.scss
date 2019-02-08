@@ -1,0 +1,26 @@
+.sidebar-properties {
+    &>.sidebar-content {
+        &>.heading {
+            text-align: center;
+            padding: 10px 0;
+        }
+    }
+    & .form-group {
+        border-bottom: 1px solid;
+    }
+    table {
+        &>tr>td {
+            border: 1px solid rgb(212, 202, 202);
+            &.prop-name{
+                border-left: none;
+                padding-left: 8px;
+            }
+            &.prop-value{
+                border-right: none;
+            }
+        }
+        & input{
+            border: none;
+        }
+    }
+}

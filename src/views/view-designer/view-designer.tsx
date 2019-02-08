@@ -1,51 +1,31 @@
 import { Component, Vue } from "vue-property-decorator";
-import { ComponentToRender } from "./models/component-to-render";
-import { IComponentToRender } from "./models/icomponent-to-render";
 import { DesignComponentFactory } from "./component-factory/design-component-factory";
-
-import "./view-designer.scss";
-import { ComponentDirective } from "./directives/component-directive";
-import { SortableDirective } from "./directives/sortable-directive";
-import Sortable, { GroupOptions } from "sortablejs";
 import GlobalEvents from "vue-global-events";
 import { ComponentElement } from "./models/component-element";
 import { CreateElement, VNodeDirective } from "vue";
 import { DesignComponentToRender } from "./component-factory/design-component-to-render";
-import { DraggableComponent } from "./directives/draggable-component";
+import { ContainerDef } from "./models/container-def";
+import { Containers } from "./containers";
+
+import "./view-designer.scss";
+import { IComponentToRender } from "./models/icomponent-to-render";
+import MainLayout from "@/components/core/main-layout/main-layout";
 
 @Component({
-    directives: {
-        "component-directive": ComponentDirective,
-        "sortable-directive": SortableDirective,
-        "draggable-component": DraggableComponent
+    components: {
+        "content-wrapper": () => import("@/components/core/content-wrapper/content-wrapper")
     }
 })
 export default class ViewDesigner extends Vue {
 
-    private components: DesignComponentToRender[];
+    private components: DesignComponentToRender[] = [];
 
     private factory = new DesignComponentFactory();
-    private draggingComponent: IComponentToRender = null;
-    private fromComponent: IComponentToRender;
-    private toComponent: IComponentToRender;
-    private cloneEl: HTMLElement;
+    private toEl: ComponentElement;
+    private fromEl: ComponentElement;
     private dragEl: ComponentElement;
-    private dragClickOffsetX = 0;
-    private dragClickOffsetY = 0;
-    private oldIdx = -1;
-    private newIdx = -1;
-
-    private containers: ContainerDef[] = [
-        { name: "grid-row", flow: "row" },
-        { name: "grid-col", flow: "col" }
-    ];
-
-
-    public get clonedComponents(): IComponentToRender[] {
-        const cloned = JSON.parse(JSON.stringify(this.components));
-
-        return cloned;
-    }
+    private oldIdx: number;
+    private fromPalette: boolean;
 
     protected created() {
         const components: IComponentToRender[] = [
@@ -62,6 +42,7 @@ export default class ViewDesigner extends Vue {
                                     {
                                         name: "grid-col",
                                         children: [
+                                            { name: "component-actions" },
                                             { name: "input-text" }
                                         ]
                                     },
@@ -74,205 +55,269 @@ export default class ViewDesigner extends Vue {
             }
         ];
 
-        this.components = components.map((comp) => this.factory.createComponentToRender(comp));
+        const build = components.map((comp) => this.factory.createComponent(comp));
+        this.components = build;
     }
 
     protected render(createElement: CreateElement) {
         return (
-            <div class="view-designer editing">
-                <GlobalEvents
-                    onDragover={(e: DragEvent) => this.onDragover(e)}
-                    onDragstart={(e: DragEvent) => this.onDragstart(e)}
-                    onDragend={(e: DragEvent) => this.onDragend(e)}>
-                </GlobalEvents>
-                {this.components.map((comp) => comp.render(createElement))}
-            </div>
+            <MainLayout>
+                <div class="view-designer editing">
+                    <GlobalEvents
+                        onDragover={(e: DragEvent) => this.onDragover(e)}
+                        onDragstart={(e: DragEvent) => this.onDragstart(e)}
+                        onDragend={(e: DragEvent) => this.onDragend(e)}>
+                    </GlobalEvents>
+                    {this.components.map((comp) => comp.render(createElement))}
+                </div>
+            </MainLayout>
         );
-    }
-
-    private onDragend(e: DragEvent): any {
-        // this.cloneEl.remove();
-        // this.cloneEl = undefined;
-        this.draggingComponent = undefined;
-        this.fromComponent = undefined;
-        this.dragEl = undefined;
-
     }
 
     private async onDragstart(e: DragEvent) {
         e.stopPropagation();
 
-        const dragEl = this.dragEl = (e.target as HTMLElement) as ComponentElement;
-
-        this.dragClickOffsetX = e.layerX;
-        this.dragClickOffsetY = e.layerY;
+        const dragEl = (e.target as HTMLElement) as ComponentElement;
 
         // Set the drag img to and new, not in dom element.
-        e.dataTransfer.setDragImage(document.createElement("div"), this.dragClickOffsetX, this.dragClickOffsetY);
+        // e.dataTransfer.setDragImage(document.createElement("div"), this.dragClickOffsetX, this.dragClickOffsetY);
 
         const parentEl = dragEl.parentElement as ComponentElement;
 
         // If the it comes from the palette, get the component to render from data attr.
         if (parentEl.classList.contains("simple-list")) {
-            const component = ComponentToRender.parse(dragEl.dataset.component);
-            this.draggingComponent = this.factory.createComponentToRender(component);
-            e.dataTransfer.dropEffect = "copy";
+            this.fromPalette = true;
+            e.dataTransfer.effectAllowed = "copy";
+
+            const undelineElement = dragEl.getElementsByClassName("underline-component")[0]
+                .childNodes[0] as ComponentElement;
+            this.dragEl = new Vue({
+                render: (createElement) => undelineElement.component
+                    .render(createElement)
+            }).$mount().$el as ComponentElement;
         } else {
             // If it's already in the form, get from the prop set by component directive.
-            this.draggingComponent = dragEl.component;
-            this.fromComponent = parentEl.component;
-            this.oldIdx = this.fromComponent.children.indexOf(this.draggingComponent);
+            this.dragEl = dragEl;
+            this.fromPalette = false;
+            e.dataTransfer.effectAllowed = "move";
+            this.fromEl = parentEl;
+            this.oldIdx = [...parentEl.childNodes].indexOf(this.dragEl);
         }
+
+        this.dragEl.classList.add("dragging");
     }
 
     private onDragover(e: DragEvent): void {
         let target = e.target as ComponentElement;
 
         // Move up to the parent if it's not a vue component;
-        if (!this.isComponent(target)) {
+        if (target.component == null) {
             target = target.closest("[draggable=true]") as ComponentElement;
-            if (target == null)
+            if (target == null) {
                 return;
+            }
         }
 
-        if (target.component == this.draggingComponent || this.dragEl.contains(target)) {
-            e.preventDefault();
+        // We are over the clone that is already in this place.
+        if (target == this.dragEl || this.dragEl.contains(target)) {
+            console.log("over self");
+            return e.preventDefault();
+        }
+
+        const palette = (this.$refs.palette as Vue).$el;
+        if (target == palette || palette.contains(target)) {
+            console.log("Over palette");
             return;
         }
 
         // Get the drop position of element.
-        const dropPosition = this.dropPosition(e.pageX, e.pageY, target);
+        const dropPosition = this.findDropPosition(e.clientX, e.clientY, target);
 
         // If drop position is null, means this dragged component can't be dropped here.
-        if (dropPosition == null)
+        if (dropPosition == null) {
             return;
+        }
 
+        // It's a valid place to drop.
         e.preventDefault();
 
-        if (dropPosition == "into") {
-            const posInside = this.getDropPositionInside(e, target);
-
-            // If the position returned is null, just append the new child
-            if (!posInside) {
-                target.appendChild(this.dragEl);
-            } else if (posInside.position == "before") {
-                target.insertBefore(this.dragEl, posInside.refEl);
-            } else {
-                posInside.refEl.insertAdjacentElement("afterend", this.dragEl);
-            }
-        } else if (dropPosition == "before") {
-            target.parentElement.insertBefore(this.dragEl, target);
-        } else if (dropPosition == "after") {
-            target.insertAdjacentElement("afterend", target);
+        if (dropPosition.position == "inside") {
+            dropPosition.containerEl.appendChild(this.dragEl);
+        } else if (dropPosition.position == "before") {
+            dropPosition.refEl.insertAdjacentElement("beforebegin", this.dragEl);
+        } else {
+            dropPosition.refEl.insertAdjacentElement("afterend", this.dragEl);
         }
+
+        this.toEl = dropPosition.containerEl;
     }
 
-    private isComponent(target: HTMLElement): boolean {
-        return (target as any).component != null;
+    private onDragend(e: DragEvent): any {
+        this.dragEl.classList.remove("dragging");
+
+        // function to reset variables
+        const resetVariables = () => {
+            this.fromEl = undefined;
+            this.toEl = undefined;
+            this.oldIdx = undefined;
+            this.dragEl = undefined;
+        };
+
+        if (this.toEl == null) {
+            return resetVariables();
+        }
+
+        const dropped = e.dataTransfer.dropEffect != "none";
+        const newIdx = [...this.toEl.childNodes].indexOf(this.dragEl);
+
+        // Put evething back to it's place before updating the state.
+        // That is needed because othewise vue get confused with the changed dom.
+        if (!this.fromPalette) {
+            const refEl = this.fromEl.childNodes[this.oldIdx] as ComponentElement;
+            if (refEl) {
+                if (this.toEl == this.fromEl) {
+                    if (newIdx < this.oldIdx) {
+                        refEl.insertAdjacentElement("afterend", this.dragEl);
+                    } else {
+                        refEl.insertAdjacentElement("beforebegin", this.dragEl);
+                    }
+                } else {
+                    refEl.insertAdjacentElement("beforebegin", this.dragEl);
+                }
+            } else {
+                this.fromEl.appendChild(this.dragEl);
+            }
+
+            if (dropped) {
+                // Remove the dragged component from the initial list an add it to the new one.
+                this.fromEl.component.children.splice(this.oldIdx, 1);
+                this.toEl.component.children.splice(newIdx, 0, this.dragEl.component);
+            }
+        } else {
+            this.dragEl.remove();
+            this.toEl.component.children.splice(newIdx, 0, this.dragEl.component);
+        }
+
+        resetVariables();
     }
 
-    private dropPosition(x: number, y: number, target: ComponentElement): "before" | "after" | "into" {
+    private findDropPosition(x: number, y: number, target: ComponentElement): DropPosition {
+
+        let container = Containers.find((item) => item.name === target.component.name);
+
         const targetBounding = target.getBoundingClientRect();
-        const container = this.containers.find((item) => item.name === target.component.name);
+        const isContainerButCantDrop = (container && !this.isInTheBorder(x, y, targetBounding))
+            && !this.canDrop(container, target);
 
-        if (container && !this.isInTheBorder(x, y, targetBounding)) {
-            if (this.canDrop(container, target))
-                return "into";
+        let propsByFlow: PropsUsedByFlow;
+        let axisVal: number;
 
+        const isNotContainerOrInBorderOfOne = !container || this.isInTheBorder(x, y, targetBounding);
+        const isNotContentContaninerOrContentWrapper = !(target.component.name == "content-container" ||
+            target.component.name == "content-wrapper");
+
+        if (isContainerButCantDrop) {
+
+            // The container doesn't accept this element.
             return null;
-        } else if (!container || (container && this.isInTheBorder(x, y, targetBounding))) {
 
+        } else if (isNotContainerOrInBorderOfOne && isNotContentContaninerOrContentWrapper) {
+            // In this case the drop place is the parent.
             const parentEl = target.parentElement as ComponentElement;
-            const parentContainer = this.containers
-                .find((item) => item.name === parentEl.component.name);
+            container = Containers.find((item) => item.name === parentEl.component.name);
 
-            // If the parent container is null means it can't accept dropped components.
-            if (parentContainer == null) {
+            // The parent doesn't accept this element.
+            if (!this.canDrop(container, parentEl)) {
                 return null;
             }
 
-            if (this.canDrop(parentContainer, parentEl)) {
-                if (parentContainer.flow == "row") {
-                    const pos = this.leftOrRight(x, targetBounding);
+            // Get properties used in calcs for each flow.
+            propsByFlow = this.propsByFlow(container.flow);
+            axisVal = propsByFlow.axis == "x" ? x : y;
+            const posPropVal = targetBounding[propsByFlow.posProp];
+            const sizePropVal = targetBounding[propsByFlow.sizeProp];
 
-                    return pos == "left" ? "before" : "after";
-                } else {
-                    const pos = this.topOrBottom(y, targetBounding);
+            // Calculate if should be inserted before or after.
+            const beforeOrAfter = this.isBeforeOrAfter(axisVal, posPropVal, sizePropVal);
 
-                    return pos == "top" ? "before" : "after";
-                }
+            return {
+                containerEl: parentEl,
+                position: beforeOrAfter,
+                refEl: target,
+                refElIdx: [...parentEl.childNodes].indexOf(target)
+            };
+        }
+
+        // Get properties used in calcs for each flow.
+        propsByFlow = this.propsByFlow(container.flow);
+        axisVal = propsByFlow.axis == "x" ? x : y;
+
+        const children = [...target.childNodes];
+
+        // const idxDrag = children.indexOf(this.dragEl);
+        // if (idxDrag) {
+        //     children.splice(idxDrag, 1);
+        // }
+
+        // Iterate the children of this element trying to find the closest to the current point.
+        for (const [idx, child] of children.entries()) {
+            const childBounding = (child as HTMLElement).getBoundingClientRect();
+            const posPropVal = childBounding[propsByFlow.posProp];
+            const sizePropVal = childBounding[propsByFlow.sizeProp];
+
+            const isBetweenEl = posPropVal <= axisVal && (posPropVal + sizePropVal) >= axisVal;
+            const isBeforeFirstEl = idx == 0 && posPropVal > axisVal;
+            const isAfterLastEl = idx == (target.childNodes.length - 1) && (posPropVal + sizePropVal) < axisVal;
+
+            // Check if the point is between the elements bounds.
+            let position: "before" | "after";
+            if (isBetweenEl) {
+                position = this.isBeforeOrAfter(axisVal, posPropVal, sizePropVal);
+            } else if (isBeforeFirstEl) {
+                position = "before";
+            } else if (isAfterLastEl) {
+                position = "after";
             }
 
-            return null;
+            // If we got a position.
+            if (position) {
+                return {
+                    position, refEl: child as ComponentElement,
+                    containerEl: target, refElIdx: idx
+                };
+            }
+        }
+
+        // Null means just append the child.
+        return { containerEl: target, position: "inside" };
+    }
+
+    private isBeforeOrAfter(axis: number, posPropVal: number, sizePropVal: number): "before" | "after" {
+        if (axis <= posPropVal + (sizePropVal / 2)) {
+            return "before";
+        } else {
+            return "after";
         }
     }
 
-    private getDropPositionInside(e: DragEvent, target: ComponentElement): DropPositionInside {
-        const container = this.containers
-            .find((item) => item.name === target.component.name);
-
-        const children: HTMLElement[] = [];
-
-        target.childNodes.forEach((child: HTMLElement) => children.push(child));
-
-        // Null means just append the child.
-        if (children.length == 0) return null;
-
-        let axis: number;
-        let posProp: string;
-        let sizeProp: string;
-        let beforeMarginProp: string;
-        let afterMarginProp: string;
-
-        // Setup the vars and props used according to the flow of the container.
-        if (container.flow == "row") {
-            axis = e.offsetX;
-            posProp = "offsetLeft";
-            sizeProp = "offsetWidth";
-            beforeMarginProp = "marginLeft";
-            afterMarginProp = "marginRight";
+    private propsByFlow(flow: "row" | "col"): PropsUsedByFlow {
+        if (flow == "row") {
+            return {
+                axis: "x",
+                posProp: "left",
+                sizeProp: "width"
+            };
         } else {
-            axis = e.offsetY;
-            posProp = "offsetTop";
-            sizeProp = "offsetHeight";
-            beforeMarginProp = "marginTop";
-            afterMarginProp = "marginBottom";
+            return {
+                axis: "y",
+                posProp: "top",
+                sizeProp: "height"
+            };
         }
-
-        // If point is before the first child, return the position before it.
-        if (children[0][posProp] > axis) {
-            return { position: "before", refEl: children[0] as HTMLElement };
-
-            // If point is after the last child, return the position after it.
-        } else if (children[children.length - 1][posProp] < axis) {
-            return { position: "after", refEl: children[children.length - 1] as HTMLElement };
-        }
-
-        for (const child of children) {
-            const posPropVal = child[posProp];
-            const sizePropVal = child[sizeProp];
-            const computed = document.defaultView.getComputedStyle(child);
-            const beforeMarginPropVal = parseInt(computed[beforeMarginProp]);
-            const afterMarginPropVal = parseInt(computed[afterMarginProp]);
-
-            // Check if the point is between the elements bounds.
-            if ((posPropVal - beforeMarginPropVal) <= axis && (posPropVal + sizePropVal + afterMarginPropVal) >= axis) {
-
-                // Check if the point is before the middle.
-                if (axis <= (posPropVal + (sizePropVal / 2))) {
-                    return { position: "before", refEl: child };
-                } else {
-                    return { position: "after", refEl: child };
-                }
-            }
-        }
-
-        // Null means just append the child.
-        return null;
     }
 
     private canDrop(container: ContainerDef, containerEl: ComponentElement): any {
-        const dragName = this.draggingComponent.name;
+        const dragName = this.dragEl.component.name;
         return (container.allowed == null || container.allowed.includes(dragName))
             && (container.denied == null || !container.denied.includes(dragName))
             && (container.max == null || container.max > containerEl.component.children.length);
@@ -283,49 +328,17 @@ export default class ViewDesigner extends Vue {
         return x <= targetBounding.left + tolerance || x >= targetBounding.right - tolerance
             || y <= targetBounding.top + tolerance || y >= targetBounding.bottom - tolerance;
     }
-
-    private topOrBottom(y: number, targetBounding: ClientRect | DOMRect): "top" | "bottom" {
-        const middle = targetBounding.top + ((targetBounding.bottom - targetBounding.top) / 2);
-
-        return y <= middle ? "top" : "bottom";
-    }
-
-    private leftOrRight(x: number, targetBounding: ClientRect | DOMRect): "left" | "right" {
-        const center = targetBounding.left + ((targetBounding.right - targetBounding.left) / 2);
-
-        return x <= center ? "left" : "right";
-    }
-
-    private prepareComponents(components: IComponentToRender[]) {
-        components.map((comp) => {
-            if (!comp.class) {
-                comp.class = { "dragging-el": false };
-            } else {
-                comp.class = {
-                    ...comp.class,
-                    "dragging-el": false
-                };
-            }
-
-            this.prepareComponents(comp.children);
-        });
-    }
-
-    private removeFromArray<T>(arr: T[], item: T) {
-        const idx = arr.indexOf(item);
-        arr.splice(idx, 1);
-    }
 }
 
-interface ContainerDef {
-    name: string;
-    flow: "row" | "col";
-    allowed?: string[];
-    denied?: string[];
-    max?: number;
+interface PropsUsedByFlow {
+    axis: string;
+    posProp: string;
+    sizeProp: string;
 }
 
-interface DropPositionInside {
-    position: "before" | "after";
-    refEl: HTMLElement;
+interface DropPosition {
+    position: "before" | "after" | "inside";
+    containerEl: ComponentElement;
+    refEl?: ComponentElement;
+    refElIdx?: number;
 }

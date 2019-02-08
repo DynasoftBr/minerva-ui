@@ -1,5 +1,4 @@
 import { Component, Vue, Prop, Emit, Watch } from "vue-property-decorator";
-import { InputMask as IptMask, MaskOptions } from "imask";
 import InputMask from "../input-mask/input-mask";
 
 import "./input-number.scss";

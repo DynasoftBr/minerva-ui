@@ -1,13 +1,22 @@
 import { DesignComponentToRender } from "../component-factory/design-component-to-render";
-import { CreateElement } from "vue";
-import { IComponentToRender } from "../models/icomponent-to-render";
-import { AttributeDefinition } from "../models/attribute-definition";
-import { ScopedSlot } from "vue/types/vnode";
 import { ComponentToRender } from "../models/component-to-render";
 import { ComponentFactory } from "../component-factory/component-factory";
+import { VNodeDirective } from "vue";
 
-export abstract class ComponentDecorator extends DesignComponentToRender {
+export class ComponentDecorator extends DesignComponentToRender {
     constructor(component: ComponentToRender, factory: ComponentFactory) {
         super(component, factory);
+    }
+
+    public buildData(): ComponentToRender {
+        const data = super.buildData();
+
+        data.directives = data.directives || [];
+        data.directives.push({
+            name: "component-directive",
+            value: this
+        } as VNodeDirective);
+
+        return data;
     }
 }

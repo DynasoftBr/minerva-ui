@@ -1,0 +1,16 @@
+.page-not-found {
+    & .error-title {
+        text-align: center;
+        margin-top: 3rem;
+        font-size: 100px;
+        font-weight: 300;
+    }
+    & .error-subtitle {
+        text-align: center;
+        font-weight: 300;
+        font-size: 25px;
+    }
+    & p {
+        text-align: center;
+    }
+}

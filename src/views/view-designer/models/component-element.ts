@@ -1,5 +1,5 @@
-import { IComponentToRender } from "./icomponent-to-render";
+import { ComponentToRender } from "./component-to-render";
 
 export interface ComponentElement extends HTMLElement {
-    component: IComponentToRender;
+    component: ComponentToRender;
 }

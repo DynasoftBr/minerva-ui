@@ -1,29 +1,62 @@
 import { ComponentDecorator } from "./component-decorator";
-import { CreateElement } from "vue";
 import { ComponentToRender } from "../models/component-to-render";
-import { DesignComponentFactory } from "../component-factory/design-component-factory";
 
 export class PaletteDecorator extends ComponentDecorator {
+    public buildData() {
+        const data = super.buildData();
+        data.children.push(this.paletteComponent);
+        data.children.push(this.propertiesComponent);
 
-    public get children(): ComponentToRender[] {
-        const palette = this.factory.createComponentToRender({
+        return data;
+    }
+
+    private get paletteComponent(): ComponentToRender {
+        return this.factory.createComponent({
             name: "sidebar-palette",
-            props: {
-                sidebarDarkTheme: false
-            }
+            ref: "palette",
+            props: { sidebarDarkTheme: false },
+            children: [
+                {
+                    name: "palette-section",
+                    props: { title: "Form components" },
+                    children: [
+                        {
+                            name: "palette-item",
+                            props: { title: "Input text" },
+                            children: [
+                                { name: "input-text" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    name: "palette-section",
+                    props: { title: "General elements" },
+                    children: [
+                        {
+                            name: "palette-item",
+                            props: { title: "Grid row" },
+                            children: [
+                                {
+                                    name: "grid-row",
+                                    children: [
+                                        { name: "grid-col" },
+                                        { name: "grid-col" },
+                                        { name: "grid-col" }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         });
-        return [
-            ...(super.children || []),
-            palette
-        ];
-    }
-    public set children(v: ComponentToRender[]) {
-        super.children = v;
     }
 
-    public render(createElement: CreateElement) {
-        return createElement(this.name, this,
-            this.children.map((child) => child.render(createElement)));
+    private get propertiesComponent(): ComponentToRender {
+        return this.factory.createComponent({
+            name: "sidebar-properties",
+            props: { sidebarDarkTheme: false }
+        });
     }
-
 }

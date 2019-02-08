@@ -19,16 +19,6 @@
   background: $gray-200;
 }
 
-.login-box,
-.register-box {
-  width: 360px;
-  margin: 7% auto;
-  @media (max-width: map-get($grid-breakpoints, sm)) {
-    width: 90%;
-    margin-top: 20px;
-  }
-}
-
 .login-card-body,
 .register-card-body {
   background: $white;

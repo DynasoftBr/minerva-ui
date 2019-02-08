@@ -1,10 +1,10 @@
 import Vue, { DirectiveOptions } from "vue";
-import { IComponentToRender } from "../models/icomponent-to-render";
 import { ComponentElement } from "../models/component-element";
+import { ComponentToRender } from "../models/component-to-render";
 
 class ComponentDirectiveDefinition implements DirectiveOptions {
     public bind = (el: ComponentElement, binding, vnode) => {
-        const component: IComponentToRender = binding.value;
+        const component: ComponentToRender = binding.value;
         el.component = component;
     }
 
@@ -13,7 +13,7 @@ class ComponentDirectiveDefinition implements DirectiveOptions {
     }
 
     public update = (el: ComponentElement, binding, vnode) => {
-        const component: IComponentToRender = binding.value;
+        const component: ComponentToRender = binding.value;
         el.component = component;
     }
 }

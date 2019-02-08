@@ -41,7 +41,7 @@ export default class AccordionItem extends Vue {
                 noPadding={this.noPadding}
                 sm={true}>
                 {this.title &&
-                    <Heading slot="header" size={6} noPadding={true}>
+                    <Heading slot="header" size={6} noMargin={true}>
                         <button type="button" class="btn btn-link" onClick={(e: Event) => this.toggle()}>
                             {this.title}
                         </button>

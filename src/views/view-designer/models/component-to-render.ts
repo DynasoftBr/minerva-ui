@@ -1,8 +1,6 @@
-import { AttributeDefinition } from "./attribute-definition";
-
-import { IComponentToRender } from "./icomponent-to-render";
 import { CreateElement, VNodeDirective } from "vue";
 import { ScopedSlot, VNode } from "vue/types/vnode";
+import { IComponentToRender } from "./icomponent-to-render";
 
 export abstract class ComponentToRender implements IComponentToRender {
     public static parse(component: string): IComponentToRender {

@@ -6,7 +6,26 @@
             }
         }
     }
-    .sortable-chosen.sortable-ghost {
-        border: 1px dashed;
+    .underline-component {
+        display: none;
+    }
+    .toolbox-toggler {
+        padding: 4px 2px 0px 2px;
+        margin-left: -27px;
+        top: 10px;
+        position: absolute;
+        box-shadow: none;
+        outline: none;
+        opacity: .6;
+        &.active {
+            box-shadow: none !important;
+            opacity: 1;
+        }
+        &:hover {
+            opacity: 1;
+        }
+        &>span {
+            writing-mode: vertical-rl;
+        }
     }
 }
