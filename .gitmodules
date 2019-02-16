@@ -1,0 +1,4 @@
+[submodule "poseidon-client"]
+	path = poseidon-client
+	url = https://github.com/DynasoftBr/poseidon-client.git
+	branch = master
