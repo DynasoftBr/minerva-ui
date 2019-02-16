@@ -46,7 +46,8 @@
     "src/template/js/control-sidebar.js",
     "test2.js",
     "test.js",
-    "types/imask.d.ts", "types/text-mask-addons.d.ts"
+    "types/imask.d.ts",
+    "types/text-mask-addons.d.ts"
   ],
   "exclude": [
     "node_modules"

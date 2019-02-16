@@ -1,10 +1,9 @@
 import { Component, Prop } from "vue-property-decorator";
 import { IRoute } from "./models/iroute";
 import Vue, { CreateElement, VueConstructor } from "vue";
-import { Client } from "@poseidon/client";
+import { Client, ConcreteEntity } from "@poseidon/client";
 import PageNotFound from "@/views/error-pages/page-not-found/page-not-found";
 import DynamicView from "@/views/dynamic-view/dynamic-view";
-import { ConcreteEntity } from "@poseidon/core-models";
 
 export interface Props {
     routes: IRoute[];

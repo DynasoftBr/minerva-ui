@@ -15,8 +15,6 @@
   },
   "dependencies": {
     "@poseidon/client": "file:poseidon-client",
-    "@poseidon/core-models": "file:poseidon-core-models",
-    "axios": "^0.18.0",
     "bootstrap": "^4.2.1",
     "font-awesome": "^4.7.0",
     "inputmask": "^4.0.6",

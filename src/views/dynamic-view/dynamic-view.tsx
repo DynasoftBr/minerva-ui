@@ -1,9 +1,8 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 import MainLayout from "@/components/core/main-layout/main-layout";
-import { View } from "@/models/form";
 import { CreateElement } from "vue";
-import { Client } from "@poseidon/client";
-import { EntityType } from "@poseidon/core-models";
+import { Client, EntityType } from "@poseidon/client";
+import { View } from "@/models/view";
 
 @Component
 export default class DynamicView extends Vue {
@@ -17,7 +16,7 @@ export default class DynamicView extends Vue {
         const query = Client.query<View>("View")
             .where._id.equals("5c3944d8c4366252076e67b8");
 
-        // this.view = await query.execute()[0];
+        this.view = await query.execute()[0];
         console.log(await query.execute());
     }
 
