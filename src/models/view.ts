@@ -1,7 +1,7 @@
 import { ComponentToRender } from "@/views/view-designer/models/component-to-render";
-import { ConcreteEntity, Refs } from "@poseidon/client/src";
+import { EntityTypeRef, ConcreteEntity } from "@poseidon/core-models";
 
 export interface View extends ConcreteEntity {
-    entityType: Refs.EntityTypeRef;
+    entityType: EntityTypeRef;
     components: ComponentToRender[];
 }

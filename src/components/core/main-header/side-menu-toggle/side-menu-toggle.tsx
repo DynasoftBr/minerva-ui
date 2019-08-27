@@ -7,7 +7,7 @@ export default class SideMenuToggle extends Vue {
 
     protected render(h: any) {
         return (
-            <NavLink onClick={() => MainSidebarModule.toggle()} hide-on-small-screen={false}>
+            <NavLink onClick={() => MainSidebarModmain-headerule.toggle()} hide-on-small-screen={false}>
                 <i class="fa fa-bars"></i>
             </NavLink>
         );
