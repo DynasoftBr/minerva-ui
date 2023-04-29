@@ -16,7 +16,7 @@
     "bootstrap": "^4.2.1",
     "font-awesome": "^4.7.0",
     "inputmask": "^4.0.8",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "moment": "^2.24.0",
     "popper.js": "^1.15.0",
     "pretty-checkbox": "^3.0.3",
